@@ -57,37 +57,79 @@ employees.each do |employee|
   end
 end
 
-products = csv_records.map {|record| record[""]}
 
+products = csv_records.map {|record| record["product_name"]}
+# product table
+  # product_name
+products.each do |product|
+  db_connection do |conn|
+    result = conn.exec_params(
+      'SELECT product_name FROM product WHERE product_name=$1',
+      [product]
+    )
+    # NOTE: ensure no duplication
+    if result.to_a.empty?
+      conn.exec_params(
+        'INSERT INTO product (product_name) VALUES ($1)',
+        [product]
+      )
+    end
+  end
+end
 
 
 db_connection do |conn|
-  CSV.foreach("sales.csv", :headers => true) do |row|
-    # get row data and define with variables
-    # split employee into name and email
-
-        # employee table
-          # employee_name
-          # email
-          # NOTE: ensure no duplication
-        # product table
-          # product_name
-          # NOTE: ensure no duplication
-
+  csv_records.each do |record|
     # gather foreign keys from:
         # customer
+    customer_name = record["customer_and_account_no"].split(' ')[0]
+    customer_id = conn.exec_params(
+      'SELECT id FROM customer WHERE customer_name=$1',
+      [customer_name]
+    )[0]["id"]
+
+    # gather foreign keys from:
         # employee
+    employee_name = record["employee"].split(' ')[0]
+    employee_id = conn.exec_params(
+      'SELECT id FROM employee WHERE employee_name=$1',
+      [employee_name]
+    )[0]["id"]
+
+    # gather foreign keys from:
         # product
+    product_name = record["product_name"]
+    product_id = conn.exec_params(
+      'SELECT id FROM product WHERE product_name=$1',
+      [product_name]
+    )[0]["id"]
 
     # populate invoice table
+    invoice_no = record["invoice_no"]
         # invoice_no
+    sale_date = record["sale_date"]
         # sale_date
+    units_sold = record["units_sold"]
         # units_sold
+    sale_amount = record["sale_amount"]
         # sale_amount
+    invoice_frequency = record["invoice_frequency"]
         # invoice_frequency
+    # the id's are gathered above
         # product_id
         # customer_id
         # employee_id
+    result = conn.exec_params(
+      'SELECT invoice_no FROM invoice WHERE invoice_no=$1',
+      [invoice_no]
+    )
 
+    if result.to_a.empty?
+      conn.exec_params(
+        'INSERT INTO invoice (invoice_no, sale_date, units_sold, sale_amount, invoice_frequency, product_id, customer_id, employee_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        [invoice_no, sale_date, units_sold, sale_amount, invoice_frequency, product_id, customer_id, employee_id]
+      )
+    end
   end
 end
