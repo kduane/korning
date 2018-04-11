@@ -1,4 +1,8 @@
 -- DEFINE YOUR DATABASE SCHEMA HERE
+DROP TABLE IF EXISTS customer;
+DROP TABLE IF EXISTS employee;
+DROP TABLE IF EXISTS product;
+DROP TABLE IF EXISTS invoice;
 
 CREATE TABLE customer (
   id SERIAL PRIMARY KEY,
@@ -14,7 +18,7 @@ CREATE TABLE employee (
 
 CREATE TABLE product (
   id SERIAL PRIMARY KEY,
-  product_name VARHAR(255)
+  product_name VARCHAR(255)
 );
 
 CREATE TABLE invoice (
@@ -26,5 +30,5 @@ CREATE TABLE invoice (
   invoice_frequency VARCHAR(50),
   product_id INTEGER,
   customer_id INTEGER,
-  employee_id INTEGER,
+  employee_id INTEGER
 );
